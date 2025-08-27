@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prayer Times to Calendar Events Converter</title>
+  <style>
+    /* ---------- Pastel Theme (CSS Variables) ---------- */
+    :root {
+      --bg-1: #ffeef4;      /* blush */
+      --bg-2: #e9f8ff;      /* powder blue */
+      --card: #ffffff;
+      --text-1: #2f2a3a;    /* deep eggplant */
+      --text-2: #666077;    /* soft muted */
+      --primary: #b9a7f6;   /* lavender */
+      --primary-2: #9ee0d7; /* mint */
+      --primary-3: #ffd6e7; /* pink */
+      --ring: #b9a7f6;
+      --success: #8fdac2;   /* pastel green */
+      --danger: #f6a7b3;    /* pastel coral */
+      --muted: #f6f7fb;     /* light grayish */
+      --shadow: 0 20px 40px rgba(58, 44, 96, 0.12);
+      --radius-lg: 20px;
+      --radius-md: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    /* ---------- Page ---------- */
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+        Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text-1);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%);
+      /* subtle texture */
+      background-attachment: fixed;
+    }
+
+    .container {
+      width: min(720px, 100%);
+      background: color-mix(in oklab, var(--card) 92%, transparent);
+      border-radius: var(--radius-lg);
+      padding: 40px 32px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      backdrop-filter: blur(6px);
+    }
+
+    /* floating pastel blobs */
+    .container::before,
+    .container::after {
+      content: "";
+      position: absolute;
+      filter: blur(40px);
+      opacity: 0.25;
+      z-index: -1;
+      transform: translateZ(0);
+    }
+    .container::before {
+      width: 220px; height: 220px; border-radius: 50%;
+      background: radial-gradient(closest-side, var(--primary) 0%, transparent 70%);
+      top: -60px; left: -60px;
+    }
+    .container::after {
+      width: 260px; height: 260px; border-radius: 50%;
+      background: radial-gradient(closest-side, var(--primary-2) 0%, transparent 70%);
+      bottom: -80px; right: -80px;
+    }
+
+    /* ---------- Header ---------- */
+    .header { text-align: center; margin-bottom: 28px; }
+    .header h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      line-height: 1.15;
+      margin: 0 0 10px;
+      letter-spacing: 0.3px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-2));
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header p { color: var(--text-2); font-size: 1.05rem; }
+
+    /* ---------- Upload Area ---------- */
+    .upload-area {
+      border: 2.5px dashed color-mix(in oklab, var(--primary) 70%, #ffffff 30%);
+      background: linear-gradient(180deg, #ffffff 0%, var(--muted) 100%);
+      border-radius: var(--radius-md);
+      padding: 28px;
+      text-align: center;
+      transition: all .25s ease;
+      cursor: pointer;
+      margin: 24px 0 16px;
+      position: relative;
+    }
+    .upload-area:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(58, 44, 96, 0.08); }
+    .upload-area.dragover {
+      border-color: var(--primary-2);
+      background: linear-gradient(180deg, #ffffff 0%, color-mix(in oklab, var(--primary-3) 40%, #fff 60%) 100%);
+    }
+    .upload-icon { font-size: 2.4rem; margin-bottom: 8px; }
+    .upload-text { font-weight: 600; margin-bottom: 4px; }
+    .upload-subtext { color: var(--text-2); font-size: 0.95rem; }
+    #file-input { display: none; }
+
+    .file-info {
+      background: color-mix(in oklab, var(--primary-3) 35%, #fff 65%);
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: var(--text-1);
+      font-size: 0.95rem;
+      border: 1px solid color-mix(in oklab, var(--primary-3) 40%, #ffffff 60%);
+    }
+
+    /* ---------- Buttons ---------- */
+    .btn {
+      --_bg: linear-gradient(135deg, var(--primary), var(--primary-2));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-weight: 700;
+      color: white;
+      background: var(--_bg);
+      box-shadow: 0 10px 24px rgba(185, 167, 246, 0.24);
+      transition: transform .15s ease, box-shadow .2s ease, filter .15s ease;
+      cursor: pointer;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(58, 44, 96, 0.15); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: .6; cursor: not-allowed; box-shadow: none; }
+    .btn:focus-visible { outline: 3px solid color-mix(in oklab, var(--ring) 60%, #fff 40%); outline-offset: 2px; }
+
+    .download-btn {
+      --_bg: linear-gradient(135deg, #90d5c0, #b9e6ff);
+      box-shadow: 0 10px 24px rgba(144, 213, 192, 0.24);
+      margin-top: 16px;
+    }
+
+    /* ---------- Loading ---------- */
+    .loading { display: none; text-align: center; margin: 18px 0; color: var(--text-2); }
+    .spinner {
+      width: 42px; height: 42px; border-radius: 50%;
+      border: 3px solid #f1f1f4; border-top: 3px solid var(--primary);
+      animation: spin 1s linear infinite; margin: 0 auto 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---------- Result Card ---------- */
+    .result {
+      display: none;
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 18px;
+      margin-top: 16px;
+      border: 1px solid #f0eef6;
+      box-shadow: 0 6px 18px rgba(58, 44, 96, 0.08);
+    }
+    .result h3 { margin: 0 0 6px; }
+    .result.success { border-left: 6px solid var(--success); }
+    .result.error { border-left: 6px solid var(--danger); }
+
+    /* ---------- Schedule Preview ---------- */
+    .prayer-schedule { margin-top: 12px; display: grid; gap: 12px; }
+    .day-schedule {
+      background: linear-gradient(180deg, #ffffff 0%, var(--muted) 100%);
+      border-radius: 12px; padding: 14px; box-shadow: 0 2px 8px rgba(58, 44, 96, 0.06);
+      border: 1px solid #f0eef6;
+    }
+    .day-header {
+      font-weight: 700; color: var(--text-1); margin-bottom: 10px;
+      border-bottom: 1px dashed #ebe9f5; padding-bottom: 6px;
+    }
+    .prayer-times {
+      display: grid; gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      font-size: 0.95rem; color: var(--text-1);
+    }
+    .prayer-time { display: flex; justify-content: space-between; }
+
+    /* ---------- Reduced Motion ---------- */
+    @media (prefers-reduced-motion: reduce) {
+      .btn, .upload-area { transition: none; }
+      .spinner { animation: none; border-top-color: var(--primary); }
+    }
+
+    /* Small screens */
+    @media (max-width: 420px) {
+      .container { padding: 28px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🕌 Prayer Times to Calendar Events Converter</h1>
+      <p>Upload a prayer timetable image and get your calendar file</p>
+    </div>
+
+    <div class="upload-area" role="button" tabindex="0" aria-label="Click to upload or drag and drop an image" onclick="document.getElementById('file-input').click()" onkeydown="(event.key==='Enter'||event.key===' ')&&document.getElementById('file-input').click()">
+      <div class="upload-icon">📸</div>
+      <div class="upload-text">Click to upload or drag and drop</div>
+      <div class="upload-subtext">Supports JPG, PNG and other image formats</div>
+      <input type="file" id="file-input" accept="image/*" />
+    </div>
+
+    <div class="file-info" id="file-info" style="display: none;"></div>
+
+    <button class="btn" id="upload-btn" onclick="uploadFile()" disabled>
+      Parse Prayer Timetable
+    </button>
+
+    <div class="loading" id="loading" aria-live="polite">
+      <div class="spinner"></div>
+      <div>Parsing prayer timetable with AI…</div>
+    </div>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    let selectedFile = null;
+    let parsedData = null;
+
+    // File input handling
+    document.getElementById('file-input').addEventListener('change', function (e) {
+      handleFile(e.target.files[0]);
+    });
+
+    // Drag and drop handling
+    const uploadArea = document.querySelector('.upload-area');
+
+    uploadArea.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', function (e) {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', function (e) {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+
+    function handleFile(file) {
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showResult('Please select an image file.', 'error');
+        return;
+      }
+
+      selectedFile = file;
+
+      // Show file info
+      const fileInfo = document.getElementById('file-info');
+      fileInfo.innerHTML = `
+        <strong>Selected file:</strong> ${file.name}<br />
+        <strong>Size:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB<br />
+        <strong>Type:</strong> ${file.type}
+      `;
+      fileInfo.style.display = 'block';
+
+      // Enable upload button
+      document.getElementById('upload-btn').disabled = false;
+    }
+
+    async function uploadFile() {
+      if (!selectedFile) return;
+
+      const uploadBtn = document.getElementById('upload-btn');
+      const loading = document.getElementById('loading');
+      const result = document.getElementById('result');
+
+      // Show loading
+      uploadBtn.disabled = true;
+      loading.style.display = 'block';
+      result.style.display = 'none';
+
+      try {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          parsedData = data.parsed_data;
+          showParsedData(data);
+        } else {
+          showResult(data.detail || 'Error uploading file', 'error');
+        }
+      } catch (error) {
+        showResult('Network error: ' + error.message, 'error');
+      } finally {
+        loading.style.display = 'none';
+        uploadBtn.disabled = false;
+      }
+    }
+
+    function showParsedData(data) {
+      const resultDiv = document.getElementById('result');
+      const schedule = data.parsed_data.schedule;
+
+      let scheduleHtml = `
+        <h3>✅ Prayer timetable parsed successfully!</h3>
+        <p><strong>City:</strong> ${data.parsed_data.city}</p>
+        <p><strong>Month:</strong> ${data.parsed_data.month} ${data.parsed_data.year}</p>
+        <p><strong>Total days:</strong> ${schedule.length}</p>
+
+        <div class="prayer-schedule">
+      `;
+
+      // Show first few days as preview
+      const previewDays = schedule.slice(0, 3);
+      previewDays.forEach((day) => {
+        scheduleHtml += `
+          <div class="day-schedule">
+            <div class="day-header">${day.weekday}, ${day.date}</div>
+            <div class="prayer-times">
+              <div class="prayer-time"><span>Subh:</span><span>${day.prayers.subh}</span></div>
+              <div class="prayer-time"><span>Sunrise:</span><span>${day.prayers.sunrise}</span></div>
+              <div class="prayer-time"><span>Dhuhr:</span><span>${day.prayers.dhuhr}</span></div>
+              <div class="prayer-time"><span>Sunset:</span><span>${day.prayers.sunset}</span></div>
+              <div class="prayer-time"><span>Maghrib:</span><span>${day.prayers.maghrib}</span></div>
+              <div class="prayer-time"><span>Midnight:</span><span>${day.prayers.midnight}</span></div>
+            </div>
+          </div>
+        `;
+      });
+
+      if (schedule.length > 3) {
+        scheduleHtml += `<p style="color: var(--text-2)"><em>… and ${schedule.length - 3} more days</em></p>`;
+      }
+
+      scheduleHtml += `
+        </div>
+        <button class="btn download-btn" onclick="downloadCalendar()">
+          📅 Download Calendar File (.ics)
+        </button>
+      `;
+
+      resultDiv.innerHTML = scheduleHtml;
+      resultDiv.className = 'result success';
+      resultDiv.style.display = 'block';
+    }
+
+    function showResult(message, type) {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = `<p>${message}</p>`;
+      resultDiv.className = `result ${type}`;
+      resultDiv.style.display = 'block';
+    }
+
+    async function downloadCalendar() {
+      if (!parsedData) return;
+
+      try {
+        const response = await fetch('/download-calendar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parsedData),
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `prayer_times_${parsedData.city}_${parsedData.month}_${parsedData.year}.ics`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        } else {
+          const error = await response.json();
+          showResult(error.detail || 'Error downloading calendar', 'error');
+        }
+      } catch (error) {
+        showResult('Network error: ' + error.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
