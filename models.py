@@ -24,5 +24,5 @@ class MonthlyPrayerSchedule(BaseModel):
         default_factory=lambda: datetime.now().year,
         description="Year, e.g., 2025"
     )
-    city: str = Field(..., description="City for which timetable applies, e.g., 'København'")
+    city: str = Field(..., description="City for which timetable applies")
     schedule: List[DailyPrayerSchedule]
