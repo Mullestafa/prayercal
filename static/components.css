@@ -1,0 +1,812 @@
+/* Components CSS - Prayer Times App */
+
+/* Accessibility Utilities */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Section Spacing */
+.section-spacing {
+  margin: 28px 0;
+}
+
+.section-spacing:first-child {
+  margin-top: 0;
+}
+
+.section-spacing:last-child {
+  margin-bottom: 0;
+}
+
+/* Step Progress */
+.step-progress {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
+  padding: 0 20px;
+}
+
+.step-progress .steps {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 8px 0;
+  list-style: none;
+  margin: 0;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: var(--transition);
+  min-width: fit-content;
+}
+
+.step.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(159, 122, 234, 0.3);
+}
+
+.step.completed {
+  background: var(--success);
+  color: white;
+  border-color: transparent;
+}
+
+.step-number {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.step.completed .step-number::before {
+  content: '✓';
+}
+
+.step-connector {
+  width: 32px;
+  height: 2px;
+  background: var(--border);
+  margin: 0 8px;
+}
+
+.step.completed + .step-connector {
+  background: var(--success);
+}
+
+/* Toast Notifications */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 400px;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(58, 44, 96, 0.15);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  animation: slideInRight 0.3s ease;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: var(--transition);
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+.toast:hover {
+  transform: translateX(-4px);
+  box-shadow: 0 12px 32px rgba(58, 44, 96, 0.2);
+}
+
+.toast-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.toast-message {
+  color: var(--text-1);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 1.3rem;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: var(--transition);
+  flex-shrink: 0;
+  margin-top: -2px;
+}
+
+.toast-close:hover {
+  background: var(--muted);
+  color: var(--text-1);
+}
+
+.toast-success {
+  border-left: 4px solid var(--success);
+  background: linear-gradient(135deg, var(--card) 0%, color-mix(in oklab, var(--success) 5%, var(--card) 95%) 100%);
+}
+
+.toast-error {
+  border-left: 4px solid var(--danger);
+  background: linear-gradient(135deg, var(--card) 0%, color-mix(in oklab, var(--danger) 5%, var(--card) 95%) 100%);
+}
+
+.toast-warning {
+  border-left: 4px solid var(--warn);
+  background: linear-gradient(135deg, var(--card) 0%, color-mix(in oklab, var(--warn) 5%, var(--card) 95%) 100%);
+}
+
+.toast-info {
+  border-left: 4px solid var(--primary);
+  background: linear-gradient(135deg, var(--card) 0%, color-mix(in oklab, var(--primary) 5%, var(--card) 95%) 100%);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Image Modal */
+.image-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  background: var(--card);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.modal-close:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Drag Overlay */
+.drag-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(185, 167, 246, 0.1);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.drag-message {
+  background: var(--card);
+  border: 2px dashed var(--primary);
+  border-radius: 20px;
+  padding: 24px 32px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--primary);
+  box-shadow: 0 12px 32px rgba(185, 167, 246, 0.2);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Sticky Actions (Mobile) */
+.sticky-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: 16px;
+  display: none;
+  gap: 12px;
+  z-index: 100;
+  box-shadow: 0 -4px 12px rgba(58, 44, 96, 0.1);
+  backdrop-filter: blur(8px);
+  transition: transform 0.3s ease;
+}
+
+.sticky-actions .btn {
+  flex: 1;
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  position: relative;
+  overflow: visible;
+}
+
+.sticky-actions .download-btn.has-changes {
+  background: linear-gradient(135deg, var(--warn), #ff8c42);
+  animation: pulse 2s infinite;
+}
+
+.change-indicator-small {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--danger);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--card);
+  animation: bounce 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 10px 24px rgba(214, 158, 46, 0.3); }
+  50% { box-shadow: 0 10px 24px rgba(214, 158, 46, 0.6); }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-4px); }
+  60% { transform: translateY(-2px); }
+}
+
+/* Small spinner for buttons */
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Enhanced Schedule Cards */
+.day-schedule {
+  transition: var(--transition);
+  cursor: default;
+  position: relative;
+}
+
+.day-schedule:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(58, 44, 96, 0.12);
+}
+
+.day-schedule.has-edits {
+  border-left: 4px solid var(--warn);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--warn) 5%, #ffffff 95%) 0%, var(--muted) 100%);
+}
+
+.prayer-time {
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.prayer-time:hover {
+  background: color-mix(in oklab, var(--primary-3) 35%, #ffffff 65%);
+  transform: scale(1.02);
+}
+
+.prayer-time:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.prayer-time.editing {
+  background: color-mix(in oklab, var(--primary) 20%, #ffffff 80%);
+  border: 2px solid var(--primary);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(159, 122, 234, 0.2);
+}
+
+.prayer-time.edited {
+  background: color-mix(in oklab, var(--success) 15%, #ffffff 85%);
+  border: 1px solid color-mix(in oklab, var(--success) 30%, transparent);
+}
+
+.prayer-label {
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.time-value {
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.edit-indicator {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.7rem;
+  color: var(--success);
+  font-weight: bold;
+  animation: editSuccess 0.3s ease;
+}
+
+@keyframes editSuccess {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.time-input {
+  background: var(--card);
+  border: 2px solid var(--primary);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: inherit;
+  color: var(--text-1);
+  width: 100%;
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.time-input:focus {
+  outline: none;
+  border-color: var(--primary-2);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 25%, transparent);
+}
+
+.time-input.invalid {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--danger) 25%, transparent);
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* Edit Badges */
+.edit-badge {
+  background: var(--warn);
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  margin-left: 8px;
+  animation: slideInRight 0.3s ease;
+}
+
+.change-badge {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: linear-gradient(135deg, var(--warn), #ff8c42);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 6px 16px rgba(214, 158, 46, 0.4);
+  z-index: 100;
+  animation: slideInRight 0.3s ease;
+  cursor: pointer;
+  transition: var(--transition);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.change-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(214, 158, 46, 0.5);
+}
+
+/* Info Panel */
+.info-panel {
+  background: linear-gradient(135deg, var(--primary-3), var(--primary-2));
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  border: 1px solid color-mix(in oklab, var(--primary-3) 50%, transparent);
+  position: relative;
+}
+
+.info-panel h4 {
+  margin: 0 0 8px;
+  color: var(--text-1);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.info-panel p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.info-panel .close-btn {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px;
+  border-radius: 4px;
+  transition: var(--transition);
+}
+
+.info-panel .close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--text-1);
+}
+
+/* Skeleton Loaders */
+.skeleton-container {
+  padding: 20px;
+  background: var(--card);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+.skeleton-day {
+  height: 120px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+}
+
+.skeleton-days {
+  margin: 20px 0;
+}
+
+.skeleton-text {
+  height: 16px;
+  margin-bottom: 12px;
+}
+
+.skeleton-text.short {
+  width: 60%;
+}
+
+.loading-text {
+  text-align: center;
+  color: var(--text-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Enhanced Form Controls */
+.edit-fields input:invalid {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--danger) 25%, transparent);
+}
+
+.edit-fields input:valid {
+  border-color: var(--success);
+}
+
+/* Dark Mode Enhancements */
+:root.dark .toast {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+:root.dark .modal-content {
+  background: var(--card);
+}
+
+:root.dark .drag-message {
+  background: var(--card);
+  color: var(--primary);
+}
+
+:root.dark .sticky-actions {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+:root.dark .prayer-time:hover {
+  background: color-mix(in oklab, var(--primary-3) 15%, var(--card) 85%);
+}
+
+:root.dark .prayer-time.editing {
+  background: color-mix(in oklab, var(--primary) 25%, var(--card) 75%);
+  border-color: var(--primary);
+}
+
+:root.dark .prayer-time.edited {
+  background: color-mix(in oklab, var(--success) 15%, var(--card) 85%);
+  border-color: color-mix(in oklab, var(--success) 30%, transparent);
+}
+
+:root.dark .day-schedule.has-edits {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--warn) 8%, var(--card) 92%) 0%, var(--muted) 100%);
+  border-left-color: var(--warn);
+}
+
+:root.dark .time-input {
+  background: var(--muted);
+  color: var(--text-1);
+}
+
+:root.dark .skeleton-container {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+:root.dark .skeleton {
+  background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
+  background-size: 200% 100%;
+}
+
+:root.dark .info-panel {
+  background: linear-gradient(135deg, color-mix(in oklab, var(--primary-3) 20%, var(--card) 80%), color-mix(in oklab, var(--primary-2) 20%, var(--card) 80%));
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .step-progress .steps {
+    gap: 8px;
+  }
+  
+  .step {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .step-text {
+    display: none;
+  }
+  
+  .toast-container {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    bottom: 100px; /* Account for sticky actions */
+  }
+  
+  .toast {
+    max-width: 100%;
+  }
+  
+  .modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+  
+  .drag-message {
+    padding: 20px 24px;
+    font-size: 1rem;
+  }
+
+  .sticky-actions {
+    padding: 12px 16px;
+  }
+
+  .sticky-actions .btn {
+    padding: 12px 14px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .step {
+    padding: 4px 8px;
+  }
+  
+  .step-number {
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+  }
+  
+  .step-connector {
+    width: 20px;
+    margin: 0 4px;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  :root {
+    --text-1: #000000;
+    --text-2: #1a1a1a;
+    --border: #808080;
+    --primary: #0066cc;
+    --success: #006600;
+    --danger: #cc0000;
+    --warn: #996600;
+  }
+  
+  :root.dark {
+    --text-1: #ffffff;
+    --text-2: #e6e6e6;
+    --border: #999999;
+    --primary: #66b3ff;
+    --success: #66ff66;
+    --danger: #ff6666;
+    --warn: #ffcc66;
+  }
+  
+  .step.active,
+  .step.completed {
+    border: 2px solid currentColor;
+  }
+  
+  .toast {
+    border-width: 2px;
+  }
+  
+  .prayer-time:hover,
+  .prayer-time.edited {
+    border: 2px solid currentColor;
+  }
+  
+  .btn {
+    border: 2px solid transparent;
+  }
+  
+  .btn:focus-visible {
+    border-color: currentColor;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .day-schedule,
+  .prayer-time,
+  .drag-overlay {
+    animation: none;
+    transition: none;
+  }
+  
+  .skeleton {
+    animation: none;
+  }
+  
+  .day-schedule:hover,
+  .prayer-time:hover {
+    transform: none;
+  }
+}

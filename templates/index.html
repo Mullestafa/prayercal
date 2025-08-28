@@ -3,352 +3,85 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#9f7aea" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="Convert prayer timetable images to calendar files with AI-powered parsing" />
   <title>Prayer Times to Calendar Events Converter</title>
   <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/components.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕌</text></svg>" />
+  <script>
+    // Prevent theme flicker
+    (function() {
+      const theme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (theme === 'dark' || (!theme && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
 </head>
 <body>
-  <main class="container">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <main class="container" id="main-content">
     <div class="theme-toggle" aria-label="Theme selector">
       <button type="button" id="theme-btn" onclick="toggleTheme()">🌙 Dark</button>
       <button type="button" class="secondary-btn" onclick="resetAll()" title="Reset the page">♻️ Reset</button>
     </div>
+
     <header class="header">
       <h1>🕌 Prayer Times → Calendar Converter</h1>
       <p>Upload a prayer timetable image and generate an .ics calendar file you can import anywhere.</p>
     </header>
 
-    <div class="upload-area" role="button" tabindex="0" aria-label="Click to upload or drag and drop an image" onclick="document.getElementById('file-input').click()" onkeydown="(event.key==='Enter'||event.key===' ')&&document.getElementById('file-input').click()">
-      <div class="upload-icon">📸</div>
-      <div class="upload-text">Click to upload or drag and drop</div>
-      <div class="upload-subtext">Supports JPG, PNG and other image formats</div>
-      <input type="file" id="file-input" accept="image/*" />
-    </div>
 
-    <div class="file-info" id="file-info" style="display: none;"></div>
+    <nav class="step-progress" role="navigation" aria-label="Progress through conversion steps">
+      <ol class="steps">
+        <li class="step active" id="step-1" aria-current="step">
+          <div class="step-number" aria-hidden="true">1</div>
+          <span class="step-text">Upload Image</span>
+        </li>
+        <div class="step-connector" aria-hidden="true"></div>
+        <li class="step" id="step-2">
+          <div class="step-number" aria-hidden="true">2</div>
+          <span class="step-text">Review & Edit</span>
+        </li>
+        <div class="step-connector" aria-hidden="true"></div>
+        <li class="step" id="step-3">
+          <div class="step-number" aria-hidden="true">3</div>
+          <span class="step-text">Download Calendar</span>
+        </li>
+      </ol>
+    </nav>
 
-    <button class="btn" id="upload-btn" onclick="uploadFile()" disabled>
-      Parse Prayer Timetable
-    </button>
+    <form class="upload-form" onsubmit="event.preventDefault(); uploadFile();">
+      <div class="upload-area" role="button" tabindex="0" aria-label="Click to upload or drag and drop an image">
+        <div class="upload-icon">📸</div>
+        <div class="upload-text">Click to upload or drag and drop</div>
+        <div class="upload-subtext">Supports JPG, PNG and other image formats (max 10MB)<br><small>Prayer times will be displayed in 24-hour format</small></div>
+        <input type="file" id="file-input" accept="image/*" />
+      </div>
+
+      <div class="file-info" id="file-info" style="display: none;" aria-live="polite"></div>
+
+      <button type="submit" class="btn" id="upload-btn" disabled>
+        Parse Prayer Timetable
+      </button>
+    </form>
 
     <div class="loading" id="loading" aria-live="polite">
       <div class="spinner"></div>
       <div>Parsing prayer timetable with AI…</div>
     </div>
 
-    <div class="result" id="result"></div>
-  </div>
+    <div class="result" id="result" aria-live="polite"></div>
+  </main>
 
   <footer>
     <p>Made with ✨ for easier prayer planning. <a href="https://github.com/mullestafa/prayercal" target="_blank" rel="noopener">GitHub</a></p>
   </footer>
-  </main>
 
-  <script>
-    let selectedFile = null;
-    let parsedData = null;
-    let expanded = false;
-
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-    function getMonthOptions(selectedMonth) {
-        return monthNames.map(month => {
-            const isSelected = selectedMonth && month.toLowerCase() === selectedMonth.toLowerCase();
-            return `<option value="${month}" ${isSelected ? 'selected' : ''}>${month}</option>`;
-        }).join('');
-    }
-
-    // File input handling
-    document.getElementById('file-input').addEventListener('change', function (e) {
-      handleFile(e.target.files[0]);
-    });
-
-    // Drag and drop handling
-    const uploadArea = document.querySelector('.upload-area');
-
-    uploadArea.addEventListener('dragover', function (e) {
-      e.preventDefault();
-      uploadArea.classList.add('dragover');
-    });
-
-    uploadArea.addEventListener('dragleave', function (e) {
-      e.preventDefault();
-      uploadArea.classList.remove('dragover');
-    });
-
-    uploadArea.addEventListener('drop', function (e) {
-      e.preventDefault();
-      uploadArea.classList.remove('dragover');
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        handleFile(files[0]);
-      }
-    });
-
-    function handleFile(file) {
-      if (!file) return;
-
-      if (!file.type.startsWith('image/')) {
-        showResult('Please select an image file.', 'error');
-        return;
-      }
-
-      selectedFile = file;
-
-      // Show file info
-      const fileInfo = document.getElementById('file-info');
-      const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-      const imgPreview = URL.createObjectURL(file);
-      fileInfo.innerHTML = `
-        <img src="${imgPreview}" alt="Preview" aria-label="Image preview" />
-        <div class="meta">
-          <div><strong>File:</strong> <span class="truncate" title="${file.name}">${file.name}</span></div>
-          <div><strong>Size:</strong> ${sizeMB} MB</div>
-          <div><strong>Type:</strong> ${file.type}</div>
-        </div>
-      `;
-      fileInfo.style.display = 'flex';
-
-      // Enable upload button
-      document.getElementById('upload-btn').disabled = false;
-    }
-
-    async function uploadFile() {
-      if (!selectedFile) return;
-
-      const uploadBtn = document.getElementById('upload-btn');
-      const loading = document.getElementById('loading');
-      const result = document.getElementById('result');
-
-      // Show loading
-      uploadBtn.disabled = true;
-      loading.style.display = 'block';
-      result.style.display = 'none';
-
-      try {
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-
-        const response = await fetch('/upload', {
-          method: 'POST',
-          body: formData,
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          parsedData = data.parsed_data;
-          showParsedData(data);
-        } else {
-          showResult(data.detail || 'Error uploading file', 'error');
-        }
-      } catch (error) {
-        showResult('Network error: ' + error.message, 'error');
-      } finally {
-        loading.style.display = 'none';
-        uploadBtn.disabled = false;
-      }
-    }
-
-  function showParsedData(data) {
-      const resultDiv = document.getElementById('result');
-      const schedule = data.parsed_data.schedule;
-      const sanityCheck = data.sanity_check;
-
-      let scheduleHtml = `
-        <h3>✅ Prayer timetable parsed successfully!</h3>
-        
-        <div class="warning">
-          <p><strong>Warning:</strong> Please double-check the parsed information for accuracy. The AI parser may make mistakes.</p>
-        </div>
-      `;
-
-      // Add sanity check results
-      if (sanityCheck) {
-        if (sanityCheck.is_valid) {
-          scheduleHtml += `
-            <div class="warning sanity-pass">
-              <p><strong>✅ Sanity Check: PASSED</strong> - The parsed data looks reasonable.</p>
-            </div>
-          `;
-        } else {
-          scheduleHtml += `
-            <div class="warning sanity-fail">
-              <p><strong>❌ Sanity Check: FAILED</strong> - Potential parsing issues detected:</p>
-              <ul style="margin: 8px 0 0 20px; padding: 0;">
-                ${sanityCheck.issues.map(issue => `<li>${issue}</li>`).join('')}
-              </ul>
-            </div>
-          `;
-        }
-
-        if (sanityCheck.warnings && sanityCheck.warnings.length > 0) {
-          scheduleHtml += `
-            <details class="warning sanity-warn">
-              <summary><strong>⚠️  Warnings (${sanityCheck.warnings.length})</strong> – Click to expand</summary>
-              <ul style="margin: 8px 0 0 20px; padding: 0;">
-                ${sanityCheck.warnings.map(warning => `<li style="font-size: 0.9em;">${warning}</li>`).join('')}
-              </ul>
-            </details>
-          `;
-        }
-      }
-
-      scheduleHtml += `
-        <p>You can now edit the details below before downloading the calendar file.</p>
-        
-        <div class="edit-fields">
-          <div>
-            <label for="city-input">City</label>
-            <input id="city-input" value="${data.parsed_data.city}">
-          </div>
-          <div>
-            <label for="month-input">Month</label>
-            <select id="month-input">
-                ${getMonthOptions(data.parsed_data.month)}
-            </select>
-          </div>
-          <div>
-            <label for="year-input">Year</label>
-            <input id="year-input" value="${data.parsed_data.year}" type="number">
-          </div>
-        </div>
-
-        <p><strong>Total days found:</strong> ${schedule.length}</p>
-
-        <div class="prayer-schedule">
-      `;
-
-      // Show first few days as preview (collapsible full schedule)
-      const previewCount = 3;
-      const previewDays = schedule.slice(0, previewCount);
-      previewDays.forEach((day) => {
-        scheduleHtml += `
-          <div class="day-schedule">
-            <div class="day-header">${day.weekday}, ${day.date}</div>
-            <div class="prayer-times">
-              <div class="prayer-time"><span>Subh:</span><span>${day.prayers.subh}</span></div>
-              <div class="prayer-time"><span>Sunrise:</span><span>${day.prayers.sunrise}</span></div>
-              <div class="prayer-time"><span>Dhuhr:</span><span>${day.prayers.dhuhr}</span></div>
-              <div class="prayer-time"><span>Sunset:</span><span>${day.prayers.sunset}</span></div>
-              <div class="prayer-time"><span>Maghrib:</span><span>${day.prayers.maghrib}</span></div>
-              <div class="prayer-time"><span>Midnight:</span><span>${day.prayers.midnight}</span></div>
-            </div>
-          </div>
-        `;
-      });
-
-      if (schedule.length > previewCount) {
-        const remaining = schedule.slice(previewCount);
-        scheduleHtml += `<div id="more-days" class="fade-mask" style="display:none;">
-          ${remaining.map(day => `
-            <div class=\"day-schedule\">
-              <div class=\"day-header\">${day.weekday}, ${day.date}</div>
-              <div class=\"prayer-times\">
-                <div class=\"prayer-time\"><span>Subh:</span><span>${day.prayers.subh}</span></div>
-                <div class=\"prayer-time\"><span>Sunrise:</span><span>${day.prayers.sunrise}</span></div>
-                <div class=\"prayer-time\"><span>Dhuhr:</span><span>${day.prayers.dhuhr}</span></div>
-                <div class=\"prayer-time\"><span>Sunset:</span><span>${day.prayers.sunset}</span></div>
-                <div class=\"prayer-time\"><span>Maghrib:</span><span>${day.prayers.maghrib}</span></div>
-                <div class=\"prayer-time\"><span>Midnight:</span><span>${day.prayers.midnight}</span></div>
-              </div>
-            </div>`).join('')}
-        </div>`;
-        scheduleHtml += `<button class="btn secondary-btn expand-toggle" type="button" onclick="toggleExpand()" id="expand-btn">Show All Days (${schedule.length - previewCount} more)</button>`;
-      }
-
-      scheduleHtml += `
-        </div>
-        <button class="btn download-btn" onclick="downloadCalendar()">
-          📅 Download Calendar File (.ics)
-        </button>
-      `;
-
-      resultDiv.innerHTML = scheduleHtml;
-      resultDiv.className = 'result success';
-      resultDiv.style.display = 'block';
-    }
-
-    function showResult(message, type) {
-      const resultDiv = document.getElementById('result');
-      resultDiv.innerHTML = `<p>${message}</p>`;
-      resultDiv.className = `result ${type}`;
-      resultDiv.style.display = 'block';
-    }
-
-  async function downloadCalendar() {
-      if (!parsedData) return;
-
-      // Update parsedData with values from input fields
-      parsedData.city = document.getElementById('city-input').value;
-      parsedData.month = document.getElementById('month-input').value;
-      parsedData.year = document.getElementById('year-input').value;
-
-      try {
-        const response = await fetch('/download-calendar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(parsedData),
-        });
-
-        if (response.ok) {
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `prayer_times_${parsedData.city}_${parsedData.month}_${parsedData.year}.ics`;
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-        } else {
-          const error = await response.json();
-          showResult(error.detail || 'Error downloading calendar', 'error');
-        }
-      } catch (error) {
-        showResult('Network error: ' + error.message, 'error');
-      }
-    }
-
-    function toggleExpand() {
-      const more = document.getElementById('more-days');
-      const btn = document.getElementById('expand-btn');
-      if (!more || !btn) return;
-      expanded = !expanded;
-      more.style.display = expanded ? 'block' : 'none';
-      if (expanded) {
-        more.classList.remove('fade-mask');
-        btn.textContent = 'Hide Extra Days';
-      } else {
-        more.classList.add('fade-mask');
-        btn.textContent = 'Show All Days';
-      }
-    }
-
-    function toggleTheme() {
-      const root = document.documentElement;
-      root.classList.toggle('dark');
-      const btn = document.getElementById('theme-btn');
-      const dark = root.classList.contains('dark');
-      btn.textContent = dark ? '☀️ Light' : '🌙 Dark';
-      localStorage.setItem('theme', dark ? 'dark' : 'light');
-    }
-
-    function resetAll() {
-      selectedFile = null; parsedData = null; expanded = false;
-      document.getElementById('file-input').value = '';
-      document.getElementById('file-info').style.display = 'none';
-      document.getElementById('upload-btn').disabled = true;
-      document.getElementById('result').style.display = 'none';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    (function initTheme(){
-      const pref = localStorage.getItem('theme');
-      if (pref === 'dark') {
-        document.documentElement.classList.add('dark');
-        document.getElementById('theme-btn').textContent = '☀️ Light';
-      }
-    })();
-  </script>
+  <script src="/static/app.js" defer></script>
 </body>
 </html>
