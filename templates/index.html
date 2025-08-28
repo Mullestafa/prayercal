@@ -4,267 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prayer Times to Calendar Events Converter</title>
-  <style>
-    /* ---------- Pastel Theme (CSS Variables) ---------- */
-    :root {
-      --bg-1: #ffeef4;      /* blush */
-      --bg-2: #e9f8ff;      /* powder blue */
-      --card: #ffffff;
-      --text-1: #2f2a3a;    /* deep eggplant */
-      --text-2: #666077;    /* soft muted */
-      --primary: #b9a7f6;   /* lavender */
-      --primary-2: #9ee0d7; /* mint */
-      --primary-3: #ffd6e7; /* pink */
-      --ring: #b9a7f6;
-      --success: #8fdac2;   /* pastel green */
-      --danger: #f6a7b3;    /* pastel coral */
-      --muted: #f6f7fb;     /* light grayish */
-      --shadow: 0 20px 40px rgba(58, 44, 96, 0.12);
-      --radius-lg: 20px;
-      --radius-md: 12px;
-    }
-
-    * { box-sizing: border-box; }
-
-    /* ---------- Page ---------- */
-    body {
-      margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-        Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      color: var(--text-1);
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-      background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%);
-      /* subtle texture */
-      background-attachment: fixed;
-    }
-
-    .container {
-      width: min(720px, 100%);
-      background: color-mix(in oklab, var(--card) 92%, transparent);
-      border-radius: var(--radius-lg);
-      padding: 40px 32px;
-      box-shadow: var(--shadow);
-      position: relative;
-      overflow: hidden;
-      isolation: isolate;
-      backdrop-filter: blur(6px);
-    }
-
-    /* floating pastel blobs */
-    .container::before,
-    .container::after {
-      content: "";
-      position: absolute;
-      filter: blur(40px);
-      opacity: 0.25;
-      z-index: -1;
-      transform: translateZ(0);
-    }
-    .container::before {
-      width: 220px; height: 220px; border-radius: 50%;
-      background: radial-gradient(closest-side, var(--primary) 0%, transparent 70%);
-      top: -60px; left: -60px;
-    }
-    .container::after {
-      width: 260px; height: 260px; border-radius: 50%;
-      background: radial-gradient(closest-side, var(--primary-2) 0%, transparent 70%);
-      bottom: -80px; right: -80px;
-    }
-
-    /* ---------- Header ---------- */
-    .header { text-align: center; margin-bottom: 28px; }
-    .header h1 {
-      font-size: clamp(1.6rem, 4vw, 2.4rem);
-      line-height: 1.15;
-      margin: 0 0 10px;
-      letter-spacing: 0.3px;
-      background: linear-gradient(90deg, var(--primary), var(--primary-2));
-      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .header p { color: var(--text-2); font-size: 1.05rem; }
-
-    /* ---------- Upload Area ---------- */
-    .upload-area {
-      border: 2.5px dashed color-mix(in oklab, var(--primary) 70%, #ffffff 30%);
-      background: linear-gradient(180deg, #ffffff 0%, var(--muted) 100%);
-      border-radius: var(--radius-md);
-      padding: 28px;
-      text-align: center;
-      transition: all .25s ease;
-      cursor: pointer;
-      margin: 24px 0 16px;
-      position: relative;
-    }
-    .upload-area:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(58, 44, 96, 0.08); }
-    .upload-area.dragover {
-      border-color: var(--primary-2);
-      background: linear-gradient(180deg, #ffffff 0%, color-mix(in oklab, var(--primary-3) 40%, #fff 60%) 100%);
-    }
-    .upload-icon { font-size: 2.4rem; margin-bottom: 8px; }
-    .upload-text { font-weight: 600; margin-bottom: 4px; }
-    .upload-subtext { color: var(--text-2); font-size: 0.95rem; }
-    #file-input { display: none; }
-
-    .file-info {
-      background: color-mix(in oklab, var(--primary-3) 35%, #fff 65%);
-      border-radius: 12px;
-      padding: 12px 14px;
-      color: var(--text-1);
-      font-size: 0.95rem;
-      border: 1px solid color-mix(in oklab, var(--primary-3) 40%, #ffffff 60%);
-    }
-
-    /* ---------- Buttons ---------- */
-    .btn {
-      --_bg: linear-gradient(135deg, var(--primary), var(--primary-2));
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      border: none;
-      border-radius: 14px;
-      padding: 14px 18px;
-      font-weight: 700;
-      color: white;
-      background: var(--_bg);
-      box-shadow: 0 10px 24px rgba(185, 167, 246, 0.24);
-      transition: transform .15s ease, box-shadow .2s ease, filter .15s ease;
-      cursor: pointer;
-    }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(58, 44, 96, 0.15); }
-    .btn:active { transform: translateY(0); }
-    .btn:disabled { opacity: .6; cursor: not-allowed; box-shadow: none; }
-    .btn:focus-visible { outline: 3px solid color-mix(in oklab, var(--ring) 60%, #fff 40%); outline-offset: 2px; }
-
-    .download-btn {
-      --_bg: linear-gradient(135deg, #90d5c0, #b9e6ff);
-      box-shadow: 0 10px 24px rgba(144, 213, 192, 0.24);
-      margin-top: 16px;
-    }
-
-    /* ---------- Loading ---------- */
-    .loading { display: none; text-align: center; margin: 18px 0; color: var(--text-2); }
-    .spinner {
-      width: 42px; height: 42px; border-radius: 50%;
-      border: 3px solid #f1f1f4; border-top: 3px solid var(--primary);
-      animation: spin 1s linear infinite; margin: 0 auto 10px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ---------- Result Card ---------- */
-    .result {
-      display: none;
-      background: #ffffff;
-      border-radius: 14px;
-      padding: 18px;
-      margin-top: 16px;
-      border: 1px solid #f0eef6;
-      box-shadow: 0 6px 18px rgba(58, 44, 96, 0.08);
-    }
-    .result h3 { margin: 0 0 12px; }
-    .result.success { border-left: 6px solid var(--success); }
-    .result.error { border-left: 6px solid var(--danger); }
-
-    /* ---------- Warning Message ---------- */
-    .warning {
-      background-color: color-mix(in oklab, var(--danger) 15%, #fff 85%);
-      border: 1px solid color-mix(in oklab, var(--danger) 30%, transparent);
-      border-left: 5px solid var(--danger);
-      padding: 14px 18px;
-      border-radius: 12px;
-      margin: 16px 0;
-      font-size: 0.95rem;
-    }
-    .warning p {
-        margin: 0;
-        color: var(--text-1);
-        line-height: 1.5;
-    }
-    .warning strong {
-        color: color-mix(in oklab, var(--danger) 85%, black);
-    }
-
-    /* ---------- Editable Fields ---------- */
-    .edit-fields {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 14px;
-      margin-bottom: 16px;
-    }
-    .edit-fields div {
-      display: flex;
-      flex-direction: column;
-    }
-    .edit-fields label {
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: var(--text-2);
-      margin-bottom: 6px;
-    }
-    .edit-fields input, .edit-fields select {
-      background: var(--muted);
-      border: 1px solid #e0e0e6;
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-size: 1rem;
-      color: var(--text-1);
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .edit-fields input:focus, .edit-fields select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 25%, transparent);
-    }
-    .edit-fields select {
-        -webkit-appearance: none;
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-        background-position: right 0.5rem center;
-        background-repeat: no-repeat;
-        background-size: 1.5em 1.5em;
-        padding-right: 2.5rem;
-    }
-
-    /* ---------- Schedule Preview ---------- */
-    .prayer-schedule { margin-top: 12px; display: grid; gap: 12px; }
-    .day-schedule {
-      background: linear-gradient(180deg, #ffffff 0%, var(--muted) 100%);
-      border-radius: 12px; padding: 14px; box-shadow: 0 2px 8px rgba(58, 44, 96, 0.06);
-      border: 1px solid #f0eef6;
-    }
-    .day-header {
-      font-weight: 700; color: var(--text-1); margin-bottom: 10px;
-      border-bottom: 1px dashed #ebe9f5; padding-bottom: 6px;
-    }
-    .prayer-times {
-      display: grid; gap: 8px;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      font-size: 0.95rem; color: var(--text-1);
-    }
-    .prayer-time { display: flex; justify-content: space-between; }
-
-    /* ---------- Reduced Motion ---------- */
-    @media (prefers-reduced-motion: reduce) {
-      .btn, .upload-area { transition: none; }
-      .spinner { animation: none; border-top-color: var(--primary); }
-    }
-
-    /* Small screens */
-    @media (max-width: 420px) {
-      .container { padding: 28px 18px; }
-    }
-  </style>
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>🕌 Prayer Times to Calendar Events Converter</h1>
-      <p>Upload a prayer timetable image and get your calendar file</p>
+  <main class="container">
+    <div class="theme-toggle" aria-label="Theme selector">
+      <button type="button" id="theme-btn" onclick="toggleTheme()">🌙 Dark</button>
+      <button type="button" class="secondary-btn" onclick="resetAll()" title="Reset the page">♻️ Reset</button>
     </div>
+    <header class="header">
+      <h1>🕌 Prayer Times → Calendar Converter</h1>
+      <p>Upload a prayer timetable image and generate an .ics calendar file you can import anywhere.</p>
+    </header>
 
     <div class="upload-area" role="button" tabindex="0" aria-label="Click to upload or drag and drop an image" onclick="document.getElementById('file-input').click()" onkeydown="(event.key==='Enter'||event.key===' ')&&document.getElementById('file-input').click()">
       <div class="upload-icon">📸</div>
@@ -287,9 +38,15 @@
     <div class="result" id="result"></div>
   </div>
 
+  <footer>
+    <p>Made with ✨ for easier prayer planning. <a href="https://github.com/mullestafa/prayercal" target="_blank" rel="noopener">GitHub</a></p>
+  </footer>
+  </main>
+
   <script>
     let selectedFile = null;
     let parsedData = null;
+    let expanded = false;
 
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -339,12 +96,17 @@
 
       // Show file info
       const fileInfo = document.getElementById('file-info');
+      const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+      const imgPreview = URL.createObjectURL(file);
       fileInfo.innerHTML = `
-        <strong>Selected file:</strong> ${file.name}<br />
-        <strong>Size:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB<br />
-        <strong>Type:</strong> ${file.type}
+        <img src="${imgPreview}" alt="Preview" aria-label="Image preview" />
+        <div class="meta">
+          <div><strong>File:</strong> <span class="truncate" title="${file.name}">${file.name}</span></div>
+          <div><strong>Size:</strong> ${sizeMB} MB</div>
+          <div><strong>Type:</strong> ${file.type}</div>
+        </div>
       `;
-      fileInfo.style.display = 'block';
+      fileInfo.style.display = 'flex';
 
       // Enable upload button
       document.getElementById('upload-btn').disabled = false;
@@ -387,7 +149,7 @@
       }
     }
 
-    function showParsedData(data) {
+  function showParsedData(data) {
       const resultDiv = document.getElementById('result');
       const schedule = data.parsed_data.schedule;
       const sanityCheck = data.sanity_check;
@@ -404,13 +166,13 @@
       if (sanityCheck) {
         if (sanityCheck.is_valid) {
           scheduleHtml += `
-            <div class="warning" style="background: #e8f5e8; border-left-color: var(--success);">
+            <div class="warning sanity-pass">
               <p><strong>✅ Sanity Check: PASSED</strong> - The parsed data looks reasonable.</p>
             </div>
           `;
         } else {
           scheduleHtml += `
-            <div class="warning" style="background: #ffe8e8; border-left-color: var(--danger);">
+            <div class="warning sanity-fail">
               <p><strong>❌ Sanity Check: FAILED</strong> - Potential parsing issues detected:</p>
               <ul style="margin: 8px 0 0 20px; padding: 0;">
                 ${sanityCheck.issues.map(issue => `<li>${issue}</li>`).join('')}
@@ -421,8 +183,8 @@
 
         if (sanityCheck.warnings && sanityCheck.warnings.length > 0) {
           scheduleHtml += `
-            <details class="warning" style="background: #fff8e8; border-left-color: #ffa500;">
-              <summary><strong>⚠️  Warnings (${sanityCheck.warnings.length})</strong> - Click to expand</summary>
+            <details class="warning sanity-warn">
+              <summary><strong>⚠️  Warnings (${sanityCheck.warnings.length})</strong> – Click to expand</summary>
               <ul style="margin: 8px 0 0 20px; padding: 0;">
                 ${sanityCheck.warnings.map(warning => `<li style="font-size: 0.9em;">${warning}</li>`).join('')}
               </ul>
@@ -456,8 +218,9 @@
         <div class="prayer-schedule">
       `;
 
-      // Show first few days as preview
-      const previewDays = schedule.slice(0, 3);
+      // Show first few days as preview (collapsible full schedule)
+      const previewCount = 3;
+      const previewDays = schedule.slice(0, previewCount);
       previewDays.forEach((day) => {
         scheduleHtml += `
           <div class="day-schedule">
@@ -474,8 +237,23 @@
         `;
       });
 
-      if (schedule.length > 3) {
-        scheduleHtml += `<p style="color: var(--text-2)"><em>… and ${schedule.length - 3} more days</em></p>`;
+      if (schedule.length > previewCount) {
+        const remaining = schedule.slice(previewCount);
+        scheduleHtml += `<div id="more-days" class="fade-mask" style="display:none;">
+          ${remaining.map(day => `
+            <div class=\"day-schedule\">
+              <div class=\"day-header\">${day.weekday}, ${day.date}</div>
+              <div class=\"prayer-times\">
+                <div class=\"prayer-time\"><span>Subh:</span><span>${day.prayers.subh}</span></div>
+                <div class=\"prayer-time\"><span>Sunrise:</span><span>${day.prayers.sunrise}</span></div>
+                <div class=\"prayer-time\"><span>Dhuhr:</span><span>${day.prayers.dhuhr}</span></div>
+                <div class=\"prayer-time\"><span>Sunset:</span><span>${day.prayers.sunset}</span></div>
+                <div class=\"prayer-time\"><span>Maghrib:</span><span>${day.prayers.maghrib}</span></div>
+                <div class=\"prayer-time\"><span>Midnight:</span><span>${day.prayers.midnight}</span></div>
+              </div>
+            </div>`).join('')}
+        </div>`;
+        scheduleHtml += `<button class="btn secondary-btn expand-toggle" type="button" onclick="toggleExpand()" id="expand-btn">Show All Days (${schedule.length - previewCount} more)</button>`;
       }
 
       scheduleHtml += `
@@ -497,7 +275,7 @@
       resultDiv.style.display = 'block';
     }
 
-    async function downloadCalendar() {
+  async function downloadCalendar() {
       if (!parsedData) return;
 
       // Update parsedData with values from input fields
@@ -530,6 +308,47 @@
         showResult('Network error: ' + error.message, 'error');
       }
     }
+
+    function toggleExpand() {
+      const more = document.getElementById('more-days');
+      const btn = document.getElementById('expand-btn');
+      if (!more || !btn) return;
+      expanded = !expanded;
+      more.style.display = expanded ? 'block' : 'none';
+      if (expanded) {
+        more.classList.remove('fade-mask');
+        btn.textContent = 'Hide Extra Days';
+      } else {
+        more.classList.add('fade-mask');
+        btn.textContent = 'Show All Days';
+      }
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      root.classList.toggle('dark');
+      const btn = document.getElementById('theme-btn');
+      const dark = root.classList.contains('dark');
+      btn.textContent = dark ? '☀️ Light' : '🌙 Dark';
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+    }
+
+    function resetAll() {
+      selectedFile = null; parsedData = null; expanded = false;
+      document.getElementById('file-input').value = '';
+      document.getElementById('file-info').style.display = 'none';
+      document.getElementById('upload-btn').disabled = true;
+      document.getElementById('result').style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    (function initTheme(){
+      const pref = localStorage.getItem('theme');
+      if (pref === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.getElementById('theme-btn').textContent = '☀️ Light';
+      }
+    })();
   </script>
 </body>
 </html>
