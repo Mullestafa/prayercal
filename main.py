@@ -10,6 +10,7 @@ from fastapi.templating import Jinja2Templates
 from parser import PrayerTimesParser
 from calendar_generator import CalendarGenerator
 from models import MonthlyPrayerSchedule
+from sanity_checker import PrayerTimesSanityChecker
 
 # Load environment variables
 load_dotenv()
@@ -24,6 +25,7 @@ app = FastAPI(
 # Initialize services
 parser = PrayerTimesParser()
 calendar_generator = CalendarGenerator()
+sanity_checker = PrayerTimesSanityChecker()
 
 # Setup templates
 templates = Jinja2Templates(directory="templates")
@@ -51,17 +53,42 @@ async def upload_prayer_timetable(file: UploadFile = File(...)):
         # Parse prayer timetable
         prayer_schedule = await parser.parse_prayer_timetable(contents)
         
-        # Return the parsed data and download link
+        # Perform sanity checks
+        sanity_results = sanity_checker.check_schedule(prayer_schedule)
+        sanity_report = sanity_checker.generate_report(sanity_results)
+        
+        # Return the parsed data, sanity check results, and download link
         return {
             "message": "Prayer timetable parsed successfully",
             "parsed_data": prayer_schedule.model_dump(),
-            "calendar_ready": True
+            "calendar_ready": True,
+            "sanity_check": sanity_results,
+            "sanity_report": sanity_report
         }
         
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
+
+@app.post("/sanity-check")
+async def sanity_check_schedule(prayer_schedule_data: dict):
+    """Perform sanity checks on prayer schedule data."""
+    try:
+        # Convert dict back to Pydantic model
+        prayer_schedule = MonthlyPrayerSchedule(**prayer_schedule_data)
+        
+        # Perform sanity checks
+        sanity_results = sanity_checker.check_schedule(prayer_schedule)
+        sanity_report = sanity_checker.generate_report(sanity_results)
+        
+        return {
+            "sanity_check": sanity_results,
+            "sanity_report": sanity_report
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error performing sanity check: {str(e)}")
 
 @app.post("/download-calendar")
 async def download_calendar(prayer_schedule_data: dict):

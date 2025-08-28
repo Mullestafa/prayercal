@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, Field
 from datetime import time, datetime
 
@@ -24,5 +24,5 @@ class MonthlyPrayerSchedule(BaseModel):
         default_factory=lambda: datetime.now().year,
         description="Year, e.g., 2025"
     )
-    city: str = Field(..., description="City for which timetable applies")
+    city: Optional[str] = Field(None, description="City name, e.g., 'Stockholm'")
     schedule: List[DailyPrayerSchedule]
