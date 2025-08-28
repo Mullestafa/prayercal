@@ -88,19 +88,78 @@ class MonthlyPrayerSchedule(BaseModel):
 FROM python:3.11-slim
 
 WORKDIR /app
+
+# System deps (gcc for compiled wheels) and curl for healthcheck
+RUN apt-get update && apt-get install -y \
+    gcc curl \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 8010
+
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8010/health || exit 1
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8010", "--workers", "1"]
 ```
 
+#### Build & Run (Keeps Running Unless Stopped)
+
+```bash
+# Build the image
+docker build -t prayercal .
+
+# Run detached, auto-restart unless manually stopped
+docker run -d \
+    --name prayercal \
+    --restart unless-stopped \
+    -p 8010:8010 \
+    -e MISTRAL_API_KEY=your_mistral_api_key_here \
+    prayercal
+```
+
+Access the app at: http://localhost:8010
+
+Check status / logs:
+```bash
+docker ps
+docker logs -f prayercal
+```
+
+Stop / start later:
+```bash
+docker stop prayercal
+docker start prayercal
+```
+
+#### Optional docker-compose
+
+Create a `docker-compose.yml`:
+```yaml
+services:
+    prayercal:
+        build: .
+        image: prayercal
+        ports:
+            - "8010:8010"
+        environment:
+            MISTRAL_API_KEY: ${MISTRAL_API_KEY}
+        restart: unless-stopped
+```
+
+Then run:
+```bash
+docker compose up -d --build
+```
+
+Note: Running `python main.py` locally serves on port 8000; the Docker image uses 8010. Change the port by editing the `CMD` line if needed.
 ### Environment Variables for Production
 
 - `MISTRAL_API_KEY` - Your Mistral AI API key (required)
-- `PORT` - Port to run the application (default: 8000)
 
 ## License
 
