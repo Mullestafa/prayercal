@@ -97,7 +97,7 @@ main.container {
 .container::after { width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(closest-side,var(--primary-2) 0%,transparent 70%); bottom: -120px; right: -90px; }
 :root.dark .container::before{opacity:.35} :root.dark .container::after{opacity:.32}
 
-header.header { text-align: center; margin-bottom: 36px; }
+header.header { text-align: center; margin-top: 20px; margin-bottom: 36px; }
 header.header h1 { font-size: clamp(1.8rem,4vw,2.8rem); margin: 0 0 12px; line-height: 1.1; letter-spacing: .5px; background: linear-gradient(90deg,var(--primary),var(--primary-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 header.header p { margin:0; color: var(--text-2); font-size: clamp(.95rem,1.2vw,1.05rem); }
 
@@ -205,6 +205,12 @@ footer a:hover { text-decoration:underline; }
   .prayer-times { grid-template-columns: repeat(auto-fit,minmax(110px,1fr)); }
   .upload-area { padding: 28px 22px; }
   main.container { padding: 32px 20px 48px; }
+  
+  /* Move header below theme toggle buttons on mobile */
+  header.header { 
+    margin-top: 50px !important;
+    margin-bottom: 32px; 
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
