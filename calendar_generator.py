@@ -34,32 +34,31 @@ class CalendarGenerator:
             ]
             
             for prayer_name, prayer_time in prayers:
-                if prayer_time.hour != 0 or prayer_time.minute != 0:
-                    event = Event()
-                    
-                    # Combine date and time
-                    prayer_datetime = datetime.combine(date_obj.date(), prayer_time)
-                    
-                    event.add('summary', f'{prayer_name}')
-                    event.add('dtstart', prayer_datetime)
-                    event.add('dtend', prayer_datetime + timedelta(minutes=30))
-                    event.add('description', f'{prayer_name} prayer time for {prayer_schedule.city}')
-                    event.add('location', prayer_schedule.city)
-                    event.add('categories', 'Prayer,Islamic')
-                    
-                    # Add required properties per RFC 5545
-                    event.add('dtstamp', datetime.now())
-                    event.add('uid', f'{prayer_name.lower().replace(" ", "-")}-{date_obj.strftime("%Y%m%d")}-{prayer_schedule.city.lower().replace(" ", "-")}@prayercal')
-                    
-                    # Add alarm 15 minutes before
-                    from icalendar import Alarm
-                    alarm = Alarm()
-                    alarm.add('action', 'DISPLAY')
-                    alarm.add('description', f'Reminder: {prayer_name} Prayer')
-                    alarm.add('trigger', timedelta(minutes=-15))
-                    event.add_component(alarm)
-                    
-                    cal.add_component(event)
+                event = Event()
+                
+                # Combine date and time
+                prayer_datetime = datetime.combine(date_obj.date(), prayer_time)
+                
+                event.add('summary', f'{prayer_name}')
+                event.add('dtstart', prayer_datetime)
+                event.add('dtend', prayer_datetime + timedelta(minutes=30))
+                event.add('description', f'{prayer_name} prayer time for {prayer_schedule.city}')
+                event.add('location', prayer_schedule.city)
+                event.add('categories', 'Prayer,Islamic')
+                
+                # Add required properties per RFC 5545
+                event.add('dtstamp', datetime.now())
+                event.add('uid', f'{prayer_name.lower().replace(" ", "-")}-{date_obj.strftime("%Y%m%d")}-{prayer_schedule.city.lower().replace(" ", "-")}@prayercal')
+                
+                # Add alarm 15 minutes before
+                from icalendar import Alarm
+                alarm = Alarm()
+                alarm.add('action', 'DISPLAY')
+                alarm.add('description', f'Reminder: {prayer_name} Prayer')
+                alarm.add('trigger', timedelta(minutes=-15))
+                event.add_component(alarm)
+                
+                cal.add_component(event)
         
         return cal.to_ical().decode('utf-8')
     
